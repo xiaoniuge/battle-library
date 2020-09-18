@@ -1,6 +1,11 @@
-## Table
+---
+group:
+  path: /Table
+  title: Table
+title: Table
+---
 
-Demo:
+## Table
 
 ```tsx
 import React from 'react';
