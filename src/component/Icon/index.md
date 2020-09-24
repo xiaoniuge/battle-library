@@ -1,8 +1,8 @@
 ---
 group:
-  path: /Icon
-  title: Icon
-title: Icon
+    path: /Icon
+    title: 图标
+title: 图标
 ---
 
 ## Icon
