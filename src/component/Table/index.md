@@ -91,12 +91,12 @@ export default () => {
                 setDrawerFooterVisible(true);
                 setDrawerTitle('创建项目');
             }}
-            onOk={() => {
+            onDrawerOk={() => {
                 form.submit();
                 setDrawerVisible(false);
                 setDrawerTitle('创建项目');
             }}
-            onClose={() => {
+            onDrawerClose={() => {
                 setDrawerVisible(false);
                 setDrawerTitle('创建项目');
             }}

@@ -8,6 +8,7 @@ import {
     Popover,
     Checkbox,
     Drawer,
+    Modal,
 } from 'antd';
 import { TableProps as AntdTableProps } from 'antd/es/table';
 import {
@@ -62,9 +63,17 @@ interface ITableProProps<RecordType> extends AntdTableProps<RecordType> {
     drawerWidth?: number;
     drawerVisible?: boolean;
     drawerFooterVisible?: boolean;
+    modalTitle?: string;
+    modalVisible?: boolean;
+    modalWidth?: number;
+    modalOkProps?: any;
+    modalCancelProps?: any;
+    modalChildren?: React.ReactNode;
     initialValues?: any;
-    onOk?: (values?: any) => void;
-    onClose?: () => void;
+    onDrawerOk?: () => void;
+    onDrawerClose?: () => void;
+    onModalOk?: () => void;
+    onModalClose?: () => void;
     onCreateButtonClick?: () => void;
     onRefresh?: () => void;
     onSearch?: () => void;
@@ -91,9 +100,17 @@ const TablePro: ITablePro<any> = ({
     drawerWidth,
     drawerVisible,
     drawerFooterVisible,
+    modalTitle,
+    modalVisible,
+    modalWidth,
+    modalOkProps,
+    modalCancelProps,
+    modalChildren,
     initialValues,
-    onOk,
-    onClose,
+    onDrawerOk,
+    onDrawerClose,
+    onModalOk,
+    onModalClose,
     onCreateButtonClick,
     onRefresh,
     onSearch,
@@ -411,15 +428,15 @@ const TablePro: ITablePro<any> = ({
                 title={drawerTitle}
                 visible={drawerVisible}
                 width={drawerWidth}
-                onClose={onClose}
+                onClose={onDrawerClose}
                 getContainer={() => container.current}
                 footer={
                     drawerFooterVisible ? (
                         <Row justify="space-between">
                             <span></span>
                             <Space>
-                                <Button onClick={onClose}>取消</Button>
-                                <Button type="primary" onClick={onOk}>
+                                <Button onClick={onDrawerClose}>取消</Button>
+                                <Button type="primary" onClick={onDrawerOk}>
                                     确定
                                 </Button>
                             </Space>
@@ -429,6 +446,22 @@ const TablePro: ITablePro<any> = ({
             >
                 {drawerChildren}
             </Drawer>
+            <Modal
+                destroyOnClose={true}
+                maskClosable={true}
+                title={modalTitle}
+                visible={modalVisible}
+                width={modalWidth}
+                onCancel={onModalClose}
+                onOk={onModalOk}
+                okButtonProps={modalOkProps ? modalOkProps : { type: 'primary' }}
+                cancelButtonProps={modalCancelProps? modalCancelProps: {type: "default"}}
+                okText="确定"
+                cancelText="取消"
+                getContainer={() => container.current}
+            >
+                {modalChildren}
+            </Modal>
         </div>
     );
 };

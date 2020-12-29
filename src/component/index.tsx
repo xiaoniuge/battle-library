@@ -4,4 +4,5 @@ export { default as MultipleSelectList } from './MultipleSelectList';
 export { default as Input } from './Input';
 export { default as Table } from './Table';
 export { default as TablePro } from './Table/TablePro';
+// export { default as SiderMenu } from './Menu';
 export * from 'antd';

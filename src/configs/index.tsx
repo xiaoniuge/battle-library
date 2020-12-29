@@ -17,3 +17,13 @@ export interface MultipleSelectListConfig {
     label: string;
     selected: boolean;
 }
+
+/**
+ * menu config
+ */
+export interface MenuOptionConfig{
+    name: string;
+    path: string;
+    icon: string;
+    children: MenuOptionConfig[];
+}
