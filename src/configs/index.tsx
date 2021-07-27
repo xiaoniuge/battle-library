@@ -11,17 +11,29 @@ export interface AdvancedSearchFormConfig {
 }
 
 /**
+ * 高级表单的配置
+ */
+export interface AdvancedFormConfig {
+    name: string;
+    label: string;
+    type: string;
+    rules: Array<Object>;
+    component: React.ReactNode;
+}
+
+/**
  * 多选list的配置
  */
 export interface MultipleSelectListConfig {
     label: string;
+    field: string;
     selected: boolean;
 }
 
 /**
  * menu config
  */
-export interface MenuOptionConfig{
+export interface MenuOptionConfig {
     name: string;
     path: string;
     icon: string;

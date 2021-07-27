@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Form, Col, Row, Space, Button, ConfigProvider, Empty } from 'antd';
 import { DownOutlined, UpOutlined } from '@ant-design/icons';
 import { AdvancedSearchFormConfig } from '../../configs';
@@ -9,6 +9,7 @@ interface IAdvancedSearchFormProps {
     configs?: AdvancedSearchFormConfig[];
     initialValues?: any;
     onFinish?: (values?: any) => void;
+    onReset: () => void;
 }
 
 interface IAdvacedSearchForm extends React.FC<IAdvancedSearchFormProps> {}
@@ -17,16 +18,29 @@ const AdvancedSearchForm: IAdvacedSearchForm = ({
     configs = [],
     initialValues,
     onFinish,
+    onReset,
 }) => {
+    const [configsTmp, setConfigsTmp] = useState<AdvancedSearchFormConfig[]>(
+        configs,
+    );
     const [expand, setExpand] = useState(false);
     const [form] = Form.useForm();
 
+    useEffect(() => {
+        setConfigsTmp(configs);
+    }, [configs]);
+
+    const reset = () => {
+        form.resetFields();
+        onReset();
+    };
+
     const renderFormItem = () => {
         let tmp: any[] = [];
-        for (let i = 0; i < configs.length; i++) {
+        for (let i = 0; i < configsTmp.length; i++) {
             let config: AdvancedSearchFormConfig = configs[i];
             if (config.visible) {
-                tmp.push(configs[i]);
+                tmp.push(configsTmp[i]);
             }
         }
         const size: number = tmp.length;
@@ -50,7 +64,7 @@ const AdvancedSearchForm: IAdvacedSearchForm = ({
                         <Button type="primary" htmlType="submit">
                             查询
                         </Button>
-                        <Button onClick={() => form.resetFields()}>重置</Button>
+                        <Button onClick={() => reset()}>重置</Button>
                         {tmp.length > rowCols ? (
                             <a
                                 style={{ fontSize: 12 }}
@@ -66,7 +80,7 @@ const AdvancedSearchForm: IAdvacedSearchForm = ({
         return children;
     };
 
-    return configs.length !== 0 ? (
+    return configsTmp.length !== 0 ? (
         <div style={{ paddingRight: 16, paddingLeft: 16 }}>
             <ConfigProvider
                 renderEmpty={() => <Empty description="暂无数据" />}

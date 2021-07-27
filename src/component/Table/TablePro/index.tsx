@@ -53,7 +53,6 @@ const tableSizes = [
  */
 interface ITableProProps<RecordType> extends AntdTableProps<RecordType> {
     needSearch?: boolean;
-    needCreate?: boolean;
     needRefresh?: boolean;
     needSetting?: boolean;
     needFullScreen?: boolean;
@@ -74,9 +73,10 @@ interface ITableProProps<RecordType> extends AntdTableProps<RecordType> {
     onDrawerClose?: () => void;
     onModalOk?: () => void;
     onModalClose?: () => void;
-    onCreateButtonClick?: () => void;
     onRefresh?: () => void;
     onSearch?: () => void;
+    onReset: () => void;
+    actions: React.ReactNode;
 }
 
 /**
@@ -90,7 +90,6 @@ interface ITablePro<T> extends React.FC<ITableProProps<T>> {}
  */
 const TablePro: ITablePro<any> = ({
     needSearch,
-    needCreate,
     needRefresh,
     needSetting,
     needFullScreen,
@@ -111,9 +110,10 @@ const TablePro: ITablePro<any> = ({
     onDrawerClose,
     onModalOk,
     onModalClose,
-    onCreateButtonClick,
     onRefresh,
     onSearch,
+    onReset,
+    actions,
     ...props
 }) => {
     const { columns } = props;
@@ -126,6 +126,10 @@ const TablePro: ITablePro<any> = ({
     const [isFullScreen, setIsFullScreen] = useState(false);
     const [customSizeVisible, setCustomSizeVisible] = useState(false);
     const [tableSize, setTableSize] = useState<any>('default');
+    const [currentColumns, setCurrentColumns] = useState<any[]>([]);
+    const [multipleColumnListConfigs, setMultipleColumnListConfigs] = useState<
+        MultipleSelectListConfig[]
+    >([]);
     const container = useRef<any>();
     const customSizeContainer = useRef<any>();
     const customSizeTooltipContainer = useRef<any>();
@@ -136,6 +140,7 @@ const TablePro: ITablePro<any> = ({
     const multipleSelectListConfigsHandler = (
         selected: boolean,
         index: number,
+        field: string,
     ) => {
         let tmpSelect = [...multipleSelectListConfigs];
         tmpSelect[index].selected = selected;
@@ -159,6 +164,7 @@ const TablePro: ITablePro<any> = ({
                     });
                     selectConfigs.push({
                         label: item.title,
+                        field: item.dataIndex,
                         selected: visible,
                     });
                 }
@@ -166,6 +172,51 @@ const TablePro: ITablePro<any> = ({
         }
         setAdvancedSearchFormConfigs(formConfigs);
         setMultipleSelectListConfigs(selectConfigs);
+    };
+
+    const columnsConfigsHandler = (visible: boolean) => {
+        let columnConfigs: any[] = [];
+        let selectConfigs: MultipleSelectListConfig[] = [];
+        if (columns && columns.length !== 0) {
+            for (let i = 0; i < columns.length; i++) {
+                let item: any = columns[i];
+                if (item.dataIndex !== 'id' && item.key !== 'action') {
+                    selectConfigs.push({
+                        label: item.title,
+                        field: item.dataIndex,
+                        selected: visible,
+                    });
+                }
+                if (visible) {
+                    columnConfigs.push({ ...item, visible: visible });
+                } else {
+                    if (item.dataIndex !== 'id' && item.key !== 'action') {
+                        columnConfigs.push({ ...item, visible: visible });
+                    } else {
+                        columnConfigs.push({ ...item, visible: true });
+                    }
+                }
+            }
+        }
+        setCurrentColumns(columnConfigs);
+        setMultipleColumnListConfigs(selectConfigs);
+    };
+
+    const columnsListConfigsHandler = (
+        selected: boolean,
+        index: number,
+        field: string,
+    ) => {
+        let tmpSelect = [...multipleColumnListConfigs];
+        tmpSelect[index].selected = selected;
+        setMultipleColumnListConfigs(tmpSelect);
+        let tmpForm = [...currentColumns];
+        for (let i = 0; i < tmpForm.length; i++) {
+            if (tmpForm[i].dataIndex === field) {
+                tmpForm[i].visible = selected;
+            }
+        }
+        setCurrentColumns(tmpForm);
     };
 
     const fullScreenHandler = () => {
@@ -220,7 +271,8 @@ const TablePro: ITablePro<any> = ({
     };
     useEffect(() => {
         searchConfigsHandler(true);
-    }, []);
+        columnsConfigsHandler(true);
+    }, [columns]);
     useEffect(() => {
         watchFullScreen();
         return () => removeFullScreen();
@@ -239,6 +291,7 @@ const TablePro: ITablePro<any> = ({
                         <AdvancedSearchForm
                             configs={advancedSearchFormConfigs}
                             onFinish={onSearch}
+                            onReset={onReset}
                             initialValues={initialValues}
                         />
                         <Divider style={{ margin: '8px 0' }} />
@@ -248,28 +301,10 @@ const TablePro: ITablePro<any> = ({
                     justify="space-between"
                     style={{ paddingRight: 16, paddingLeft: 16 }}
                 >
-                    <span></span>
                     <Space size={16}>
-                        {needCreate ? (
-                            <Button
-                                type="primary"
-                                icon={
-                                    <Icon
-                                        type="icon-plus"
-                                        style={{ color: 'white' }}
-                                    />
-                                }
-                                onClick={onCreateButtonClick}
-                            >
-                                新建
-                            </Button>
-                        ) : null}
-                        {needRefresh || needSetting ? (
-                            <Divider
-                                type="vertical"
-                                style={{ margin: '16px 0' }}
-                            />
-                        ) : null}
+                        {actions ? <>{actions}</> : <span> </span>}
+                    </Space>
+                    <Space size={16}>
                         {needRefresh ? (
                             <Tooltip
                                 title="刷新"
@@ -332,10 +367,7 @@ const TablePro: ITablePro<any> = ({
                                 </Tooltip>
                             </Popover>
                         ) : null}
-                        {needSetting &&
-                        columns &&
-                        columns.length !== 0 &&
-                        needSearch ? (
+                        {needSetting && columns && columns.length !== 0 ? (
                             <Popover
                                 placement="bottomLeft"
                                 destroyTooltipOnHide={{ keepParent: false }}
@@ -359,26 +391,26 @@ const TablePro: ITablePro<any> = ({
                                             <Checkbox
                                                 defaultChecked={true}
                                                 onChange={e =>
-                                                    searchConfigsHandler(
+                                                    columnsConfigsHandler(
                                                         e.target.checked,
                                                     )
                                                 }
                                             >
-                                                全选(查询条件)
+                                                全选(表格显示列)
                                             </Checkbox>
                                         </Space>
                                         <Divider style={{ margin: '4px 0' }} />
                                         <MultipleSelectList
-                                            configs={multipleSelectListConfigs}
+                                            configs={multipleColumnListConfigs}
                                             selectHandler={
-                                                multipleSelectListConfigsHandler
+                                                columnsListConfigsHandler
                                             }
                                         />
                                     </Space>
                                 }
                             >
                                 <Tooltip
-                                    title="设置查询条件"
+                                    title="设置表格显示列"
                                     destroyTooltipOnHide={{ keepParent: false }}
                                     getPopupContainer={() =>
                                         searchSettingTooltipContainer.current
@@ -421,7 +453,11 @@ const TablePro: ITablePro<any> = ({
                         ) : null}
                     </Space>
                 </Row>
-                <Table {...props} size={tableSize} />
+                <Table
+                    {...props}
+                    columns={currentColumns.filter(item => item.visible)}
+                    size={tableSize}
+                />
             </Space>
             <Drawer
                 destroyOnClose={true}
@@ -454,8 +490,12 @@ const TablePro: ITablePro<any> = ({
                 width={modalWidth}
                 onCancel={onModalClose}
                 onOk={onModalOk}
-                okButtonProps={modalOkProps ? modalOkProps : { type: 'primary' }}
-                cancelButtonProps={modalCancelProps? modalCancelProps: {type: "default"}}
+                okButtonProps={
+                    modalOkProps ? modalOkProps : { type: 'primary' }
+                }
+                cancelButtonProps={
+                    modalCancelProps ? modalCancelProps : { type: 'default' }
+                }
                 okText="确定"
                 cancelText="取消"
                 getContainer={() => container.current}
